@@ -1,0 +1,46 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-own-app:
+    name: Deploy own name
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: checkout the repository
+        uses: actions/checkout@v2
+      - name: install kubectl
+        uses: azure/setup-kubectl@v3
+      - name: provide kubeconfig
+        run: |
+          mkdir ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+      - name: login to docker registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: build docker image
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          context: ./hello-word-server
+          tags:
+            ghcr.io/dotkuro/helloserver:latest
+      - name: fill out manifest template
+        run: |
+          cat own-app.yaml | DOCKER_TOKEN=${{ secrets.DOCKER_TOKEN }} envsubst > temp__own-app.yaml
+      - name: apply the manifest
+        run: |
+          kubectl apply -f temp__own-app.yaml
+      - name: verify the deployment
+        run: |
+          kubectl --namespace 'own-app' rollout status 'deployment/own-app'
