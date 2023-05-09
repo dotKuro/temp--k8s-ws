@@ -1,0 +1,25 @@
+name: qa
+
+on: pull_request
+
+jobs:
+  qa:
+    name: Run Tests for app
+    strategy:
+      matrix:
+        node-version: [ 16 ]
+        os: [ ubuntu-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: checkout the repository
+        uses: actions/checkout@v2
+      - name: install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: install npm dependencies
+        run: |
+          npm run install
+      - name: run tests
+        run: |
+          npm run test
