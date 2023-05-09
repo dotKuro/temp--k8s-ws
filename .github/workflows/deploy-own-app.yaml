@@ -43,4 +43,4 @@ jobs:
           kubectl apply -f temp__own-app.yaml
       - name: verify the deployment
         run: |
-          kubectl --namespace 'own-app' rollout status 'deployment/own-app'
+          kubectl --namespace 'own-app' rollout status 'deployment/own-app' --timeout=30s
