@@ -20,6 +20,8 @@ jobs:
       - name: install npm dependencies
         run: |
           npm install
+        working-directory: ./hello-world-server
       - name: run tests
         run: |
           npm run test
+        working-directory: ./hello-world-server
