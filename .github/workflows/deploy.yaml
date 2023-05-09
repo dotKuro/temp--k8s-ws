@@ -1,0 +1,26 @@
+name: deploy
+
+on: pull_request
+
+jobs:
+  deploy-test-app:
+    name: Deploy test name
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: checkout the repository
+        uses: actions/checkout@v2
+      - name: install kubectl
+        uses: azure/setup-kubectl@v3
+      - name: provide kubeconfig
+        run: |
+          mkdir ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+      - name: apply the manifest
+        run: |
+          kubectl apply -f test-app.yaml
+      - name: verify the deployment
+        run: |
+          kubectl --namespace 'test-app' rollout status 'deployment/test-app'
